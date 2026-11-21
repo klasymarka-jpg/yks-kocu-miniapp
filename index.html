@@ -5,67 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI YKS Koçum</title>
     <script src="https://telegram.org"></script>
-    <script src="https://tailwindcss.com"></script>
     <script src="https://jsdelivr.net"></script>
     <script src="https://jsdelivr.net"></script>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; }
-        .flip-card { perspective: 1000px; cursor: pointer; }
-        .flip-inner { transition: transform 0.5s; transform-style: preserve-3d; position: relative; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: radial-gradient(circle at top, #1e293b 0%, #090d16 100%);
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 16px 16px 40px 16px;
+        }
+        .container { max-width: 460px; margin: 0 auto; }
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        .header-card { display: flex; justify-content: space-between; align-items: center; }
+        .welcome { font-size: 12px; color: #94a3b8; }
+        .username { font-size: 20px; font-weight: 800; margin: 2px 0 6px 0; background: linear-gradient(90deg, #fff, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .badge { display: inline-block; font-size: 12px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 999px; }
+        .streak-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 88, 12, 0.15));
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-radius: 16px;
+            padding: 10px 16px;
+            text-align: center;
+        }
+        .streak-fire { font-size: 22px; line-height: 1; }
+        .streak-num { font-size: 17px; font-weight: 800; color: #fbbf24; margin-top: 4px; }
+        .streak-label { font-size: 10px; color: #fde68a; opacity: 0.8; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+        .net-pill { font-size: 12px; font-weight: 700; color: #34d399; background: rgba(16, 185, 129, 0.15); padding: 3px 10px; border-radius: 999px; }
+        .chart-wrap { position: relative; height: 190px; width: 100%; }
+        .mistake-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(51, 65, 85, 0.7);
+            padding: 10px 14px;
+            border-radius: 14px;
+            margin-bottom: 8px;
+        }
+        .mistake-left { display: flex; align-items: center; gap: 10px; }
+        .rank {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: rgba(244, 63, 94, 0.2); color: #fb7185;
+            font-size: 12px; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .topic-name { font-size: 13px; font-weight: 600; color: #f1f5f9; }
+        .count-pill { font-size: 11px; font-weight: 700; color: #fb7185; background: rgba(244, 63, 94, 0.15); padding: 3px 9px; border-radius: 8px; }
+        .flip-card { perspective: 1000px; cursor: pointer; height: 130px; }
+        .flip-inner { transition: transform 0.55s; transform-style: preserve-3d; position: relative; width: 100%; height: 100%; }
         .flipped .flip-inner { transform: rotateY(180deg); }
-        .flip-front, .flip-back { backface-visibility: hidden; }
-        .flip-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .flip-front, .flip-back {
+            backface-visibility: hidden; position: absolute; inset: 0;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            border-radius: 20px; padding: 16px;
+        }
+        .flip-front { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(56, 189, 248, 0.4); }
+        .flip-back { background: linear-gradient(135deg, #0c4a6e, #082f49); border: 1px solid #38bdf8; transform: rotateY(180deg); }
+        .muted { font-size: 12px; color: #94a3b8; text-align: center; padding: 12px 0; }
     </style>
 </head>
-<body class="p-4 pb-20 select-none">
+<body>
+    <div class="container">
+        <!-- Profil & Seri -->
+        <div class="card header-card">
+            <div>
+                <div class="welcome">Hoş geldin,</div>
+                <div id="user-name" class="username">YKS Öğrencisi</div>
+                <span id="user-class" class="badge">🎓 Yükleniyor...</span>
+            </div>
+            <div class="streak-box">
+                <div class="streak-fire">🔥</div>
+                <div id="user-streak" class="streak-num">0 Gün</div>
+                <div class="streak-label">Çalışma Serisi</div>
+            </div>
+        </div>
 
-    <!-- Üst Profil ve Seri Kartı -->
-    <div class="card p-4 mb-4 flex items-center justify-between shadow-lg">
-        <div>
-            <p class="text-xs text-slate-400">Hoş geldin,</p>
-            <h1 id="user-name" class="text-lg font-bold text-white">YKS Öğrencisi</h1>
-            <span id="user-class" class="inline-block mt-1 text-xs bg-sky-500/20 text-sky-400 px-2.5 py-0.5 rounded-full font-medium">Sınıf Yükleniyor...</span>
+        <!-- Deneme Grafiği -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📈 Deneme Net Gelişimi</div>
+                <span id="last-net" class="net-pill">Son: - Net</span>
+            </div>
+            <div id="chart-container" class="chart-wrap">
+                <canvas id="netChart"></canvas>
+            </div>
+            <p id="no-exam-msg" class="muted" style="display:none;">Henüz deneme kaydın yok. Bota /deneme yazarak ekleyebilirsin!</p>
         </div>
-        <div class="text-center bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-2xl">
-            <div class="text-2xl">🔥</div>
-            <div id="user-streak" class="text-lg font-extrabold text-amber-400">0 Gün</div>
-            <div class="text-[10px] text-amber-200/70">Çalışma Serisi</div>
-        </div>
-    </div>
 
-    <!-- Deneme Net Gelişim Grafiği -->
-    <div class="card p-4 mb-4 shadow-lg">
-        <div class="flex justify-between items-center mb-3">
-            <h2 class="text-sm font-bold text-slate-200">📈 Deneme Net Gelişimi</h2>
-            <span id="last-net" class="text-xs font-bold text-emerald-400">Son: - Net</span>
+        <!-- Hata Defteri -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📕 En Çok Takıldığın Konular</div>
+            </div>
+            <div id="mistakes-list">
+                <p class="muted">Veriler yükleniyor...</p>
+            </div>
         </div>
-        <div class="relative h-48 w-full">
-            <canvas id="netChart"></canvas>
-        </div>
-        <p id="no-exam-msg" class="hidden text-center text-xs text-slate-400 py-6">Henüz deneme kaydın yok. Bota /deneme yazarak ekleyebilirsin!</p>
-    </div>
 
-    <!-- Hata Defteri (En Çok Takıldığın Konular) -->
-    <div class="card p-4 mb-4 shadow-lg">
-        <h2 class="text-sm font-bold text-slate-200 mb-3">📕 En Çok Takıldığın Konular</h2>
-        <div id="mistakes-list" class="space-y-2">
-            <p class="text-xs text-slate-400">Veriler yükleniyor...</p>
-        </div>
-    </div>
-
-    <!-- Hızlı Tekrar Kartı (Dokunmatik Flip) -->
-    <div class="mb-4">
-        <h2 class="text-sm font-bold text-slate-200 mb-2">🃏 Odak Konu Kartı (Dokun ve Çevir)</h2>
-        <div id="flashcard" class="flip-card h-32" onclick="this.classList.toggle('flipped')">
-            <div class="flip-inner w-full h-full">
-                <div class="flip-front card p-4 flex flex-col justify-center items-center text-center h-full border-sky-500/40">
-                    <span class="text-[10px] uppercase tracking-wider text-sky-400 font-bold mb-1">Öncelikli Tekrar Konun</span>
-                    <p id="fc-topic" class="text-base font-bold text-white">Yükleniyor...</p>
-                    <span class="text-[11px] text-slate-400 mt-2">Tavsiyeyi görmek için dokun 👆</span>
+        <!-- Odak Konu Kartı -->
+        <div class="card-title" style="margin: 0 0 8px 4px;">🃏 Odak Konu Kartı (Dokun ve Çevir)</div>
+        <div id="flashcard" class="flip-card" onclick="this.classList.toggle('flipped')">
+            <div class="flip-inner">
+                <div class="flip-front">
+                    <span style="font-size:10px; color:#38bdf8; font-weight:800; letter-spacing:1px; text-transform:uppercase;">Öncelikli Tekrar Konun</span>
+                    <p id="fc-topic" style="font-size:16px; font-weight:800; margin:6px 0;">Yükleniyor...</p>
+                    <span style="font-size:11px; color:#94a3b8;">Tavsiyeyi görmek için dokun 👆</span>
                 </div>
-                <div class="flip-back card p-4 flex flex-col justify-center items-center text-center h-full bg-sky-950 border-sky-400">
-                    <p id="fc-advice" class="text-xs text-sky-100 leading-relaxed">Bota /flashcard yazarak bu konudan 3 özel soru-cevap kartı üretebilirsin!</p>
+                <div class="flip-back">
+                    <p id="fc-advice" style="font-size:12px; color:#e0f2fe; line-height:1.5;">Bota /flashcard yazarak bu konudan 3 özel soru-cevap kartı üretebilirsin!</p>
                 </div>
             </div>
         </div>
@@ -76,92 +133,77 @@
         const SUPABASE_ANON_KEY = "sb_publishable_ymplkCcjVIK8K24gyN1JKg_4z8bzsSW";
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+        const tg = window.Telegram?.WebApp;
+        if (tg) { tg.expand(); tg.ready(); }
 
-        const tgUser = tg.initDataUnsafe?.user;
+        const tgUser = tg?.initDataUnsafe?.user;
         const userId = tgUser ? tgUser.id : 8168513763;
         if (tgUser) {
             document.getElementById("user-name").innerText = tgUser.first_name + (tgUser.last_name ? " " + tgUser.last_name : "");
         }
 
         async function verileriYukle() {
-            // A. Profil ve Seri
-            const { data: profil } = await db.from("kullanicilar").select("*").eq("user_id", userId).single();
-            if (profil) {
-                document.getElementById("user-class").innerText = "🎓 " + (profil.sinif || "Belirtilmedi");
-                document.getElementById("user-streak").innerText = (profil.streak || 0) + " Gün";
-            }
+            try {
+                // 1. Profil ve Seri
+                const { data: profil } = await db.from("kullanicilar").select("*").eq("user_id", userId).maybeSingle();
+                document.getElementById("user-class").innerText = "🎓 " + (profil?.sinif || "9. Sınıf");
+                document.getElementById("user-streak").innerText = (profil?.streak || 0) + " Gün";
 
-            // B. Deneme Grafiği
-            const { data: denemeler } = await db.from("denemeler").select("*").eq("user_id", userId).order("id", { ascending: true }).limit(10);
-            if (denemeler && denemeler.length > 0) {
-                const son = denemeler[denemeler.length - 1];
-                document.getElementById("last-net").innerText = `Son: ${son.toplam} Net`;
-
-                const ctx = document.getElementById("netChart").getContext("2d");
-                new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: denemeler.map(d => d.tarih),
-                        datasets: [{
-                            label: "Toplam Net",
-                            data: denemeler.map(d => d.toplam),
-                            borderColor: "#38bdf8",
-                            backgroundColor: "rgba(56, 189, 248, 0.15)",
-                            borderWidth: 3,
-                            pointBackgroundColor: "#10b981",
-                            pointRadius: 5,
-                            fill: true,
-                            tension: 0.35
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { ticks: { color: "#94a3b8", font: { size: 10 } }, grid: { display: false } },
-                            y: { ticks: { color: "#94a3b8", font: { size: 10 } }, grid: { color: "#334155" }, beginAtZero: true }
+                // 2. Denemeler
+                const { data: denemeler } = await db.from("denemeler").select("*").eq("user_id", userId).order("id", { ascending: true }).limit(10);
+                if (denemeler && denemeler.length > 0) {
+                    const son = denemeler[denemeler.length - 1];
+                    document.getElementById("last-net").innerText = `Son: ${son.toplam} Net`;
+                    const ctx = document.getElementById("netChart").getContext("2d");
+                    new Chart(ctx, {
+                        type: "line",
+                        data: {
+                            labels: denemeler.map(d => d.tarih),
+                            datasets: [{
+                                label: "Toplam Net",
+                                data: denemeler.map(d => d.toplam),
+                                borderColor: "#38bdf8",
+                                backgroundColor: "rgba(56, 189, 248, 0.18)",
+                                borderWidth: 3,
+                                pointBackgroundColor: "#10b981",
+                                pointRadius: 5,
+                                fill: true,
+                                tension: 0.35
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { ticks: { color: "#94a3b8", font: { size: 11 } }, grid: { display: false } },
+                                y: { ticks: { color: "#94a3b8", font: { size: 11 } }, grid: { color: "rgba(148,163,184,0.1)" }, beginAtZero: true }
+                            }
                         }
-                    }
-                });
-            } else {
-                document.getElementById("netChart").classList.add("hidden");
-                document.getElementById("no-exam-msg").classList.remove("hidden");
-            }
-
-            // C. Hata Defteri Sayımı
-            const { data: hatalar } = await db.from("hatalar").select("ders, konu").eq("user_id", userId);
-            const listEl = document.getElementById("mistakes-list");
-            if (hatalar && hatalar.length > 0) {
-                const sayac = {};
-                hatalar.forEach(h => {
-                    const key = `${h.ders} - ${h.konu}`;
-                    sayac[key] = (sayac[key] || 0) + 1;
-                });
-                const sirali = Object.entries(sayac).sort((a, b) => b[1] - a[1]).slice(0, 5);
-                
-                listEl.innerHTML = sirali.map(([konu, sayi], idx) => `
-                    <div class="flex items-center justify-between bg-slate-800/80 px-3 py-2.5 rounded-xl border border-slate-700/60">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 text-xs font-bold flex items-center justify-center">${idx + 1}</span>
-                            <span class="text-xs font-medium text-slate-200">${konu}</span>
-                        </div>
-                        <span class="text-xs font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg">${sayi} hata</span>
-                    </div>
-                `).join("");
-
-                document.getElementById("fc-topic").innerText = sirali[0][0];
-                document.getElementById("fc-advice").innerText = `Bu konudan toplam ${sirali[0][1]} soru kaçırdın! Bota dönüp /flashcard yazarak bu konuya özel 3 yeni soru çözebilirsin.`;
-            } else {
-                listEl.innerHTML = `<p class="text-xs text-slate-400">Hata defterin henüz boş. Bota soru fotoğrafı atarak doldurabilirsin!</p>`;
-                document.getElementById("fc-topic").innerText = "Henüz Hata Kaydı Yok";
-            }
-        }
-
-        verileriYukle();
-    </script>
-</body>
-</html>
+                    });
+                } else {
+                    document.getElementById("chart-container").style.display = "none";
+                    document.getElementById("no-exam-msg").style.display = "block";
+                }// 3. Hatalar
+const { data: hatalar } = await db.from("hatalar").select("ders, konu").eq("user_id", userId);
+const listEl = document.getElementById("mistakes-list");
+if (hatalar && hatalar.length > 0) {
+const sayac = {};
+hatalar.forEach(h => {
+const key = ${h.ders} - ${h.konu};
+sayac[key] = (sayac[key] || 0) + 1;
+});
+const sirali = Object.entries(sayac).sort((a, b) => b[1] - a[1]).slice(0, 5);
+listEl.innerHTML = sirali.map(([konu, sayi], idx) => <div class="mistake-item"> <div class="mistake-left"> <span class="rank">${idx + 1}</span> <span class="topic-name">${konu}</span> </div> <span class="count-pill">${sayi} hata</span> </div>).join("");
+document.getElementById("fc-topic").innerText = sirali[0][0];
+document.getElementById("fc-advice").innerText = Bu konudan toplam ${sirali[0][1]} soru kaçırdın! Bota dönüp /flashcard yazarak bu konuya özel 3 yeni soru çözebilirsin.;
+} else {
+listEl.innerHTML = <p class="muted">Hata defterin henüz boş. Bota soru fotoğrafı atarak doldurabilirsin!</p>;
+document.getElementById("fc-topic").innerText = "Henüz Hata Kaydı Yok";
+}
+} catch (err) {
+console.error(err);
+document.getElementById("mistakes-list").innerHTML = <p class="muted">Bağlantı hatası: ${err.message}</p>;
+}
+}
+verileriYukle();
